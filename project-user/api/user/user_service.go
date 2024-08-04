@@ -1,7 +1,6 @@
 package user
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -33,7 +32,6 @@ func (handler *UserHandler) GetCaptcha(ctx *gin.Context) {
 	mobile := ctx.PostForm("mobile")
 	// 校验手机号码
 	flag := tool.VerifyMobile(mobile)
-	log.Printf("mobile number -> [%v]", mobile)
 	if !flag {
 		logs.LOG.Error("mobile validate err!")
 		ctx.JSON(http.StatusOK, result.Err(model.NoLegalMobile, "手机号校验失败！"))
@@ -55,9 +53,9 @@ func (handler *UserHandler) GetCaptcha(ctx *gin.Context) {
 		// 存储至缓存服务器
 		error := handler.cache.Put(constant.Registry_Key+mobile, code, 5*time.Minute)
 		if error != nil {
-			log.Printf("Put code to redis err: 【%v】", error.Error())
+			logs.LOG.Sugar().Errorf("Put code to redis err: 【%v】", error)
 		} else {
-			log.Printf("将手机号码和验证码存入Redis成功!key【%v】;code【%v】", constant.Registry_Key+mobile, code)
+			logs.LOG.Sugar().Infof("将手机号码和验证码存入Redis成功!key【%v】;code【%v】", constant.Registry_Key+mobile, code)
 		}
 	}()
 

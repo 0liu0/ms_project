@@ -14,9 +14,10 @@ type RedisCache struct {
 
 func init() {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "liuche17.cn:3061",
-		Password: "liuche", // no password set
-		DB:       0,        // use default DB
+		Addr:        "liuche17.cn:3061",
+		Password:    "liuche",        // 设置密码，没有密码为空即可
+		DB:          0,               // 设置数据库
+		DialTimeout: 5 * time.Second, // 设置五秒超时时间
 	})
 	Rc = &RedisCache{
 		rdb: rdb,
