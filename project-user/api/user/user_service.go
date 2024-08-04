@@ -9,6 +9,7 @@ import (
 	"github.com/go-redis/redis"
 	common "liuche.com/project-common"
 	"liuche.com/project-common/constant"
+	"liuche.com/project-common/logs"
 	"liuche.com/project-common/tool"
 	"liuche.com/project-user/pkg/dao"
 	"liuche.com/project-user/pkg/model"
@@ -34,14 +35,14 @@ func (handler *UserHandler) GetCaptcha(ctx *gin.Context) {
 	flag := tool.VerifyMobile(mobile)
 	log.Printf("mobile number -> [%v]", mobile)
 	if !flag {
+		logs.LOG.Error("mobile validate err!")
 		ctx.JSON(http.StatusOK, result.Err(model.NoLegalMobile, "手机号校验失败！"))
 		return
 	}
 	// 查看之前有没有发送过？有没有过期
 	_, err := handler.cache.Get(constant.Registry_Key + mobile)
-	log.Printf("err -> 【%v】", err)
 	if err != redis.Nil {
-		log.Printf("send code too busy!")
+		logs.LOG.Warn("send code too busy!")
 		ctx.JSON(http.StatusOK, result.Err(model.NoLegalMobile, "发送验证码太频繁！"))
 		return
 	}
@@ -50,7 +51,7 @@ func (handler *UserHandler) GetCaptcha(ctx *gin.Context) {
 	code := "123456"
 	go func() {
 		time.Sleep(2 * time.Second)
-		log.Println("短信验证码发送成功！")
+		logs.LOG.Info("短信验证码发送成功！")
 		// 存储至缓存服务器
 		error := handler.cache.Put(constant.Registry_Key+mobile, code, 5*time.Minute)
 		if error != nil {
